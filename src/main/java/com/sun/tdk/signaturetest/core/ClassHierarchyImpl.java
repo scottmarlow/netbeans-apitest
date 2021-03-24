@@ -85,6 +85,10 @@ public class ClassHierarchyImpl implements ClassHierarchy {
     }
 
     private void findSuperclasses(String fqname, List supers) throws ClassNotFoundException {
+        if (fqname.startsWith("java") ||        // DO NOT MERGE this hack
+                fqname.startsWith("javax")) {   // DO NOT MERGE this hack
+            return;                             // DO NOT MERGE this hack
+        }
         ClassInfo info = getClassInfo(fqname);
         String supr = info.superClass;
         if (supr != null) {

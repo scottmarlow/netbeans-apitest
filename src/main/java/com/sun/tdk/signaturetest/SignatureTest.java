@@ -1085,7 +1085,9 @@ public class SignatureTest extends SigTest {
         ClassHierarchy hi = cl.getClassHierarchy();
         if (sc != null) {
             try {
-                hi.load(sc.getQualifiedName());
+                if (isPackageMember(sc.getQualifiedName())) {
+                    hi.load(sc.getQualifiedName());
+                }
             } catch (ClassNotFoundException ex) {
                 fNotFound.add(ex.getMessage());
             }
@@ -1094,7 +1096,9 @@ public class SignatureTest extends SigTest {
         if (sif != null) {
             for (int i = 0; i < sif.length; i++) {
                 try {
-                    hi.load(sif[i].getQualifiedName());
+                    if (isPackageMember(sif[i].getQualifiedName())) {
+                        hi.load(sif[i].getQualifiedName());
+                    }
                 } catch (ClassNotFoundException ex) {
                     fNotFound.add(ex.getMessage());
                 }
@@ -1424,7 +1428,12 @@ public class SignatureTest extends SigTest {
         int tPos = 0;
 
         while ((bPos < bl) && (tPos < tl)) {
-            int comp = baseAnnotList[bPos].compareTo(testAnnotList[tPos]);
+            int comp;
+            if (true) { // TODO:  check CompareAnnotationByNameOnly
+                comp = baseAnnotList[bPos].getName().compareTo(testAnnotList[tPos].getName());
+            } else {
+                comp = baseAnnotList[bPos].compareTo(testAnnotList[tPos]);
+            }
             if (comp < 0) {
                 reportError(base, baseAnnotList[bPos].toString(), false);
                 bPos++;
