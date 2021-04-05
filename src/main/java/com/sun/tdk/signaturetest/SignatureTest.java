@@ -267,7 +267,6 @@ public class SignatureTest extends SigTest {
     public void run(String[] args, PrintWriter log, PrintWriter ref) {
 
 //        long startTime = System.currentTimeMillis();
-
         setLog(log);
         mode = null;
         try {
@@ -324,7 +323,6 @@ public class SignatureTest extends SigTest {
      * @param args Same as <code>args[]</code> passes to <code>main()</code>.
      */
     private boolean parseParameters(String[] args) {
-
 
         CommandLineParser parser = new CommandLineParser(this, "-");
 
@@ -1388,7 +1386,7 @@ public class SignatureTest extends SigTest {
             }
         }
 
-        if (!isSupersettingEnabled && found != null) {
+        if (!isSupersettingEnabled && found != null && !isJdkClass(found.getDeclaringClassName())) {
             errorManager.addError(MessageType.getAddedMessageType(found.getMemberType()), name, found.getMemberType(), found.toString(), found);
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine("added :-( " + found);
@@ -1423,8 +1421,21 @@ public class SignatureTest extends SigTest {
         int bPos = 0;
         int tPos = 0;
 
+        if (base != null && isJdkClass(base.getDeclaringClassName())) {
+            return;
+        }
+
+        if (test != null && isJdkClass(test.getDeclaringClassName())) {
+            return;
+        }
+
         while ((bPos < bl) && (tPos < tl)) {
-            int comp = baseAnnotList[bPos].compareTo(testAnnotList[tPos]);
+            int comp = 0;
+            if (isJdkClass(baseAnnotList[bPos].getName()) || isJdkClass(testAnnotList[bPos].getName())) {
+                comp = baseAnnotList[bPos].getName().compareTo(testAnnotList[tPos].getName());
+            } else {
+                comp = baseAnnotList[bPos].compareTo(testAnnotList[tPos]);
+            }
             if (comp < 0) {
                 reportError(base, baseAnnotList[bPos].toString(), false);
                 bPos++;
@@ -1448,6 +1459,11 @@ public class SignatureTest extends SigTest {
         }
     }
 
+    private boolean isJdkClass(String name) {
+        return (name != null && (name.startsWith("java.") ||
+            name.startsWith("javax.")));
+    }
+    
     private AnnotationItem[] removeExtendedAnnotations(AnnotationItem[] baseAnnotList) {
 
         if (baseAnnotList == null)
