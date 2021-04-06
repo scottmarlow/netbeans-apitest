@@ -181,7 +181,7 @@ public class ClassCorrector implements Transformer {
                 } else
                     exceptionName = throwables.substring(startPos);
 
-                if (isInvisibleClass(exceptionName)) {
+                if (!isJdkClass(exceptionName) && isInvisibleClass(exceptionName)) {
                     List supers = classHierarchy.getSuperClasses(exceptionName);
                     exceptionName = findVisibleReplacement(exceptionName, supers, "java.lang.Throwable", true);
                     mustCorrect = true;
@@ -200,6 +200,11 @@ public class ClassCorrector implements Transformer {
         }
     }
 
+    private boolean isJdkClass(String name) {
+        return (name != null && (name.startsWith("java.") ||
+            name.startsWith("javax.")) || name.startsWith("jdk.internal."));
+    }
+    
     private String findVisibleReplacementAndCheckInterfaces(String clName, List supers, String replaceWithClassName) throws ClassNotFoundException {
 
         // is it public inner class of hidden outer?
@@ -690,7 +695,7 @@ public class ClassCorrector implements Transformer {
     }
 
 
-    private boolean isInvisibleClass(String fqname) {
+    private boolean isInvisibleClass(String fqname) { // TODO:  ignore jdk.internal.vm.annotation.Contended.value()
 
         if (fqname.length() == 0)    // constructors' return type
             return false;
@@ -701,7 +706,8 @@ public class ClassCorrector implements Transformer {
 
         if (fqname.startsWith("?"))
             return false;
-
+        if (isJdkClass(fqname)) 
+            return false;
         String pname = ClassCorrector.stripArrays(ClassCorrector.stripGenerics(fqname));
 
         if (PrimitiveTypes.isPrimitive(pname))

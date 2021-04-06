@@ -59,7 +59,14 @@ public class ThrowsNormalizer {
     private boolean checkException(ClassHierarchy h, String candidate, String matchedException) throws ClassNotFoundException {
         return candidate.equals(matchedException) || h.isSubclass(candidate, matchedException);
     }
-
+    
+    // Clearly this method is not named to match only checking a single class but am not yet sure of what to do with this change.
+    // As in what should the equivialent command line option look like?  I did try excluding all java.* classes and that didn't work 
+    // (due to ignoring java.lang.IllegalStateException + others).
+    private boolean isJdkClass(String name) {
+        return name != null && (name.equals("java.lang.instrument.IllegalClassFormatException") || name.equals("javax.transaction.xa.XAException"));
+    }
+    
     private void normThrows(ClassHierarchy h, MemberDescription mr, boolean removeJLE) throws ClassNotFoundException {
         assert mr.isMethod() || mr.isConstructor();
 
@@ -93,7 +100,8 @@ public class ThrowsNormalizer {
                 if (s == null)
                     continue;
 
-                if (s.charAt(0) != '{' /* if not generic */) {
+
+                if (!isJdkClass(s) && s.charAt(0) != '{' /* if not generic */) {
 
                     if (checkException(h, s, "java.lang.RuntimeException") || (removeJLE && checkException(h, s, "java.lang.Error"))) {
                         xthrows.set(i, null);
