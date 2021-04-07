@@ -58,17 +58,7 @@ public class ClassCorrector implements Transformer {
     private Log log;
     private JDKExclude jdkExclude = new JDKExclude() {
         @Override
-        public boolean isSignatureTestJdkClass(String name) {
-            return false;
-        }
-
-        @Override
-        public boolean isClassCorrectorJdkClass(String name) {
-            return false;
-        }
-
-        @Override
-        public boolean isThrowsNormalizerJdkClass(String name) {
+        public boolean isJdkClass(String name) {
             return false;
         }
     };
@@ -201,7 +191,7 @@ public class ClassCorrector implements Transformer {
                 } else
                     exceptionName = throwables.substring(startPos);
 
-                if (!jdkExclude.isClassCorrectorJdkClass(exceptionName) && isInvisibleClass(exceptionName)) {
+                if (!jdkExclude.isJdkClass(exceptionName) && isInvisibleClass(exceptionName)) {
                     List supers = classHierarchy.getSuperClasses(exceptionName);
                     exceptionName = findVisibleReplacement(exceptionName, supers, "java.lang.Throwable", true);
                     mustCorrect = true;
@@ -721,7 +711,7 @@ public class ClassCorrector implements Transformer {
 
         if (fqname.startsWith("?"))
             return false;
-        if (jdkExclude.isClassCorrectorJdkClass(fqname)) 
+        if (jdkExclude.isJdkClass(fqname)) 
             return false;
         String pname = ClassCorrector.stripArrays(ClassCorrector.stripGenerics(fqname));
 

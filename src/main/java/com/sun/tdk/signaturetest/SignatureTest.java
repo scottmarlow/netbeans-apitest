@@ -1391,7 +1391,7 @@ public class SignatureTest extends SigTest {
             }
         }
 
-        if (!isSupersettingEnabled && found != null && !jdkExclude.isSignatureTestJdkClass(found.getDeclaringClassName())) {
+        if (!isSupersettingEnabled && found != null && !jdkExclude.isJdkClass(found.getDeclaringClassName())) {
             errorManager.addError(MessageType.getAddedMessageType(found.getMemberType()), name, found.getMemberType(), found.toString(), found);
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine("added :-( " + found);
@@ -1426,18 +1426,18 @@ public class SignatureTest extends SigTest {
         int bPos = 0;
         int tPos = 0;
 
-        if (base != null && jdkExclude.isSignatureTestJdkClass(base.getDeclaringClassName())) {
+        if (base != null && jdkExclude.isJdkClass(base.getDeclaringClassName())) {
             return;
         }
 
-        if (test != null && jdkExclude.isSignatureTestJdkClass(test.getDeclaringClassName())) {
+        if (test != null && jdkExclude.isJdkClass(test.getDeclaringClassName())) {
             return;
         }
 
         while ((bPos < bl) && (tPos < tl)) {
             int comp = 0;
-            if (jdkExclude.isSignatureTestJdkClass(baseAnnotList[bPos].getName()) || 
-                    jdkExclude.isSignatureTestJdkClass(testAnnotList[bPos].getName())) {
+            if (jdkExclude.isJdkClass(baseAnnotList[bPos].getName()) || 
+                    jdkExclude.isJdkClass(testAnnotList[bPos].getName())) {
                 comp = baseAnnotList[bPos].getName().compareTo(testAnnotList[tPos].getName());
             } else {
                 comp = baseAnnotList[bPos].compareTo(testAnnotList[tPos]);
@@ -1559,8 +1559,8 @@ public class SignatureTest extends SigTest {
 
     static class DefaultJDKExclude implements JDKExclude {
 
-        private boolean isJdkClass(String name) {
-            System.out.println("xxx isJdkClass " + name);
+        @Override
+        public boolean isJdkClass(String name) {
             return name != null && (
                     name.startsWith("java.util.Map") ||
                             name.equals("java.lang.Object") ||
@@ -1581,20 +1581,6 @@ public class SignatureTest extends SigTest {
                             name.equals("jakarta.resource.spi.SecurityException") ||
                             name.equals("java.lang.Thread")
             );
-        }
-        @Override
-        public boolean isSignatureTestJdkClass(String name) {
-            return isJdkClass(name);
-        }
-
-        @Override
-        public boolean isClassCorrectorJdkClass(String name) {
-            return isJdkClass(name);
-        }
-
-        @Override
-        public boolean isThrowsNormalizerJdkClass(String name) {
-            return isJdkClass(name);
         }
     }
 }

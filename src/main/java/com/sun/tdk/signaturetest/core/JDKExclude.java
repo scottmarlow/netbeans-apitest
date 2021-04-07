@@ -39,11 +39,6 @@ public interface JDKExclude {
      * @param name is the JDK package or class name (with typical dot separators) to check.
      * @return true if the class should be excluded from the respective signature testing.
      */
+    boolean isJdkClass(String name);
    
-    boolean isSignatureTestJdkClass(String name);
-    
-    boolean isClassCorrectorJdkClass(String name);
-    
-    boolean isThrowsNormalizerJdkClass(String name);
-
 }

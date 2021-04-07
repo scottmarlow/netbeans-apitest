@@ -100,7 +100,7 @@ public class ThrowsNormalizer {
                     continue;
 
 
-                if (!jdkExclude.isThrowsNormalizerJdkClass(s) && s.charAt(0) != '{' /* if not generic */) {
+                if (!jdkExclude.isJdkClass(s) && s.charAt(0) != '{' /* if not generic */) {
 
                     if (checkException(h, s, "java.lang.RuntimeException") || (removeJLE && checkException(h, s, "java.lang.Error"))) {
                         xthrows.set(i, null);
@@ -154,17 +154,7 @@ public class ThrowsNormalizer {
     private StringBuffer sb = new StringBuffer();
     private JDKExclude jdkExclude = new JDKExclude() {
         @Override
-        public boolean isSignatureTestJdkClass(String name) {
-            return false;
-        }
-
-        @Override
-        public boolean isClassCorrectorJdkClass(String name) {
-            return false;
-        }
-
-        @Override
-        public boolean isThrowsNormalizerJdkClass(String name) {
+        public boolean isJdkClass(String name) {
             return false;
         }
     };
