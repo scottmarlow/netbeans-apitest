@@ -1559,23 +1559,42 @@ public class SignatureTest extends SigTest {
 
     static class DefaultJDKExclude implements JDKExclude {
 
+        private boolean isJdkClass(String name) {
+            System.out.println("xxx isJdkClass " + name);
+            return name != null && (
+                    name.startsWith("java.util.Map") ||
+                            name.equals("java.lang.Object") ||
+                            name.equals("java.io.ByteArrayInputStream") ||
+                            name.equals("java.io.InputStream") ||
+                            name.equals("java.lang.Deprecated") ||
+                            name.equals("java.io.Writer") ||
+                            name.equals("java.io.OutputStream") ||
+                            name.equals("java.util.List") ||
+                            name.equals("java.util.Collection") ||
+                            name.startsWith("jdk.internal.") ||
+                            name.equals("java.lang.instrument.IllegalClassFormatException") ||
+                            name.equals("javax.transaction.xa.XAException") ||
+                            name.equals("java.lang.annotation.Repeatable") ||
+                            name.equals("java.lang.InterruptedException") ||
+                            name.equals("java.lang.CloneNotSupportedException") ||
+                            name.equals("java.lang.Throwable") ||
+                            name.equals("jakarta.resource.spi.SecurityException") ||
+                            name.equals("java.lang.Thread")
+            );
+        }
         @Override
         public boolean isSignatureTestJdkClass(String name) {
-            return name != null && (name.startsWith("java.") ||
-                    name.startsWith("javax."));
+            return isJdkClass(name);
         }
 
         @Override
         public boolean isClassCorrectorJdkClass(String name) {
-            return name != null && (name.startsWith("java.") ||
-                    name.startsWith("javax.") ||
-                    name.startsWith("jdk.internal."));
+            return isJdkClass(name);
         }
 
         @Override
         public boolean isThrowsNormalizerJdkClass(String name) {
-            return name != null && (name.equals("java.lang.instrument.IllegalClassFormatException") 
-                    || name.equals("javax.transaction.xa.XAException"));
+            return isJdkClass(name);
         }
     }
 }
