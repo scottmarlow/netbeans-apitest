@@ -43,6 +43,12 @@ import java.util.List;
  */
 public class ThrowsNormalizer {
 
+    public ThrowsNormalizer() {
+        
+    }
+    public ThrowsNormalizer(JDKExclude jdkExclude) {
+        this.jdkExclude = jdkExclude;
+    }
     public void normThrows(ClassDescription c, boolean removeJLE) throws ClassNotFoundException {
 
         ClassHierarchy h = c.getClassHierarchy();
@@ -59,14 +65,7 @@ public class ThrowsNormalizer {
     private boolean checkException(ClassHierarchy h, String candidate, String matchedException) throws ClassNotFoundException {
         return candidate.equals(matchedException) || h.isSubclass(candidate, matchedException);
     }
-    
-    // Clearly this method is not named to match only checking a single class but am not yet sure of what to do with this change.
-    // As in what should the equivialent command line option look like?  I did try excluding all java.* classes and that didn't work 
-    // (due to ignoring java.lang.IllegalStateException + others).
-    private boolean isJdkClass(String name) {
-        return name != null && (name.equals("java.lang.instrument.IllegalClassFormatException") || name.equals("javax.transaction.xa.XAException"));
-    }
-    
+
     private void normThrows(ClassHierarchy h, MemberDescription mr, boolean removeJLE) throws ClassNotFoundException {
         assert mr.isMethod() || mr.isConstructor();
 
@@ -101,7 +100,7 @@ public class ThrowsNormalizer {
                     continue;
 
 
-                if (!isJdkClass(s) && s.charAt(0) != '{' /* if not generic */) {
+                if (!jdkExclude.isThrowsNormalizerJdkClass(s) && s.charAt(0) != '{' /* if not generic */) {
 
                     if (checkException(h, s, "java.lang.RuntimeException") || (removeJLE && checkException(h, s, "java.lang.Error"))) {
                         xthrows.set(i, null);
@@ -153,4 +152,20 @@ public class ThrowsNormalizer {
     
     private List/*String*/ xthrows = new ArrayList();
     private StringBuffer sb = new StringBuffer();
+    private JDKExclude jdkExclude = new JDKExclude() {
+        @Override
+        public boolean isSignatureTestJdkClass(String name) {
+            return false;
+        }
+
+        @Override
+        public boolean isClassCorrectorJdkClass(String name) {
+            return false;
+        }
+
+        @Override
+        public boolean isThrowsNormalizerJdkClass(String name) {
+            return false;
+        }
+    };
 }

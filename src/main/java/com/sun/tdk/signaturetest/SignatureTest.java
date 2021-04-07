@@ -241,7 +241,12 @@ public class SignatureTest extends SigTest {
 
     protected Exclude exclude;
     private int readMode = MultipleFileReader.MERGE_MODE;
+    private JDKExclude jdkExclude = new DefaultJDKExclude();
 
+    public SignatureTest() {
+        normalizer = new ThrowsNormalizer(jdkExclude); 
+    }
+    
     /**
      * Run the test using command-line; return status via numeric exit code.
      *
@@ -707,7 +712,7 @@ public class SignatureTest extends SigTest {
 
         testableHierarchy = new ClassHierarchyImpl(loader, trackMode);
 
-        testableMCBuilder = new MemberCollectionBuilder(this);
+        testableMCBuilder = new MemberCollectionBuilder(this, jdkExclude);
 
         signatureClassesHierarchy = new ClassHierarchyImpl(in, trackMode);
 
@@ -728,7 +733,7 @@ public class SignatureTest extends SigTest {
         boolean buildMembers = in.isFeatureSupported(FeaturesHolder.BuildMembers);
         MemberCollectionBuilder sigfileMCBuilder = null;
         if (buildMembers) {
-            sigfileMCBuilder = new MemberCollectionBuilder(this);
+            sigfileMCBuilder = new MemberCollectionBuilder(this, jdkExclude);
         }
 
         //  Reading the sigfile: main loop.
@@ -1386,7 +1391,7 @@ public class SignatureTest extends SigTest {
             }
         }
 
-        if (!isSupersettingEnabled && found != null && !isJdkClass(found.getDeclaringClassName())) {
+        if (!isSupersettingEnabled && found != null && !jdkExclude.isSignatureTestJdkClass(found.getDeclaringClassName())) {
             errorManager.addError(MessageType.getAddedMessageType(found.getMemberType()), name, found.getMemberType(), found.toString(), found);
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine("added :-( " + found);
@@ -1421,17 +1426,18 @@ public class SignatureTest extends SigTest {
         int bPos = 0;
         int tPos = 0;
 
-        if (base != null && isJdkClass(base.getDeclaringClassName())) {
+        if (base != null && jdkExclude.isSignatureTestJdkClass(base.getDeclaringClassName())) {
             return;
         }
 
-        if (test != null && isJdkClass(test.getDeclaringClassName())) {
+        if (test != null && jdkExclude.isSignatureTestJdkClass(test.getDeclaringClassName())) {
             return;
         }
 
         while ((bPos < bl) && (tPos < tl)) {
             int comp = 0;
-            if (isJdkClass(baseAnnotList[bPos].getName()) || isJdkClass(testAnnotList[bPos].getName())) {
+            if (jdkExclude.isSignatureTestJdkClass(baseAnnotList[bPos].getName()) || 
+                    jdkExclude.isSignatureTestJdkClass(testAnnotList[bPos].getName())) {
                 comp = baseAnnotList[bPos].getName().compareTo(testAnnotList[tPos].getName());
             } else {
                 comp = baseAnnotList[bPos].compareTo(testAnnotList[tPos]);
@@ -1459,11 +1465,6 @@ public class SignatureTest extends SigTest {
         }
     }
 
-    private boolean isJdkClass(String name) {
-        return (name != null && (name.startsWith("java.") ||
-            name.startsWith("javax.")));
-    }
-    
     private AnnotationItem[] removeExtendedAnnotations(AnnotationItem[] baseAnnotList) {
 
         if (baseAnnotList == null)
@@ -1554,5 +1555,27 @@ public class SignatureTest extends SigTest {
             return null;
         }
 
+    }
+
+    static class DefaultJDKExclude implements JDKExclude {
+
+        @Override
+        public boolean isSignatureTestJdkClass(String name) {
+            return name != null && (name.startsWith("java.") ||
+                    name.startsWith("javax."));
+        }
+
+        @Override
+        public boolean isClassCorrectorJdkClass(String name) {
+            return name != null && (name.startsWith("java.") ||
+                    name.startsWith("javax.") ||
+                    name.startsWith("jdk.internal."));
+        }
+
+        @Override
+        public boolean isThrowsNormalizerJdkClass(String name) {
+            return name != null && (name.equals("java.lang.instrument.IllegalClassFormatException") 
+                    || name.equals("javax.transaction.xa.XAException"));
+        }
     }
 }

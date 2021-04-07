@@ -56,7 +56,22 @@ public class ClassCorrector implements Transformer {
 
     protected ClassHierarchy classHierarchy = null;
     private Log log;
+    private JDKExclude jdkExclude = new JDKExclude() {
+        @Override
+        public boolean isSignatureTestJdkClass(String name) {
+            return false;
+        }
 
+        @Override
+        public boolean isClassCorrectorJdkClass(String name) {
+            return false;
+        }
+
+        @Override
+        public boolean isThrowsNormalizerJdkClass(String name) {
+            return false;
+        }
+    };
 
     /**
      * Selftracing can be turned on by setting FINER level
@@ -78,6 +93,11 @@ public class ClassCorrector implements Transformer {
 
     private static I18NResourceBundle i18n = I18NResourceBundle.getBundleForClass(ClassCorrector.class);
 
+    public ClassCorrector(Log log, JDKExclude jdkExclude) {
+        this(log);
+        this.jdkExclude = jdkExclude;
+    }
+    
     public ClassCorrector(Log log) {
         this.log = log;
         // not configured externally
@@ -181,7 +201,7 @@ public class ClassCorrector implements Transformer {
                 } else
                     exceptionName = throwables.substring(startPos);
 
-                if (!isJdkClass(exceptionName) && isInvisibleClass(exceptionName)) {
+                if (!jdkExclude.isClassCorrectorJdkClass(exceptionName) && isInvisibleClass(exceptionName)) {
                     List supers = classHierarchy.getSuperClasses(exceptionName);
                     exceptionName = findVisibleReplacement(exceptionName, supers, "java.lang.Throwable", true);
                     mustCorrect = true;
@@ -200,11 +220,6 @@ public class ClassCorrector implements Transformer {
         }
     }
 
-    private boolean isJdkClass(String name) {
-        return (name != null && (name.startsWith("java.") ||
-            name.startsWith("javax.")) || name.startsWith("jdk.internal."));
-    }
-    
     private String findVisibleReplacementAndCheckInterfaces(String clName, List supers, String replaceWithClassName) throws ClassNotFoundException {
 
         // is it public inner class of hidden outer?
@@ -706,7 +721,7 @@ public class ClassCorrector implements Transformer {
 
         if (fqname.startsWith("?"))
             return false;
-        if (isJdkClass(fqname)) 
+        if (jdkExclude.isClassCorrectorJdkClass(fqname)) 
             return false;
         String pname = ClassCorrector.stripArrays(ClassCorrector.stripGenerics(fqname));
 
