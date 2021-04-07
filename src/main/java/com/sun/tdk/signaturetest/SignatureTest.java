@@ -1579,7 +1579,8 @@ public class SignatureTest extends SigTest {
                             name.equals("java.lang.CloneNotSupportedException") ||
                             name.equals("java.lang.Throwable") ||
                             name.equals("jakarta.resource.spi.SecurityException") ||
-                            name.equals("java.lang.Thread")
+                            name.equals("java.lang.Thread") ||
+                            name.equals("java.lang.Enum")
             );
         }
     }
